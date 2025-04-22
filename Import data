@@ -1,0 +1,27 @@
+#####import data
+
+
+
+library( tidyverse)
+
+
+
+
+students <-read.csv("C:/Users/emyst/Desktop/4.csv", na = c("N/A", "")) #TOT CE APARE IN FISIER CA N/A sa fie trata ca si NA
+ #N/A este pentru text   NA este pentru valori
+students
+
+
+
+
+read_csv2() reads semicolon-separated files. These use ; instead of , to separate fields and are common in countries that use , as the decimal marker.
+
+read_tsv() reads tab-delimited files.
+
+read_delim() reads in files with any delimiter, attempting to automatically guess the delimiter if you don’t specify it.
+
+read_fwf() reads fixed-width files. You can specify fields by their widths with fwf_widths() or by their positions with fwf_positions().
+
+read_table() reads a common variation of fixed-width files where columns are separated by white space.
+
+read_log() reads Apache-style log files.
