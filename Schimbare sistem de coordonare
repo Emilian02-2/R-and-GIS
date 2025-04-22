@@ -1,0 +1,41 @@
+library(raster)
+library(ggplot2)
+library (sf)
+
+
+dtm <- read_stars("C:/Users/emyst/Downloads/neon-geospatial-data/harv/harv_dtmcrop.tif")
+dtm
+
+plot <-st_read("C:/Users/emyst/Downloads/neon-geospatial-data/harv/harv_plots.shp")
+
+
+
+ggplot()+
+  geom_stars(data =dtm)
+ggplot() +
+  geom_sf(data = plot)
+
+
+
+### combinare - --- diferite proiectii 
+
+
+ggplot() +
+  geom_stars(data = dtm_reprojected )+
+  geom_sf(data = plot)
+ 
+# verificare sistem de coordonate
+st_crs(dtm)        
+st_crs(plot)   
+
+
+# transformare sistem de coordonate
+
+dtm_reprojected <- st_transform(dtm, 4326)
+
+
+plots_harv <- st_transform(plot, st_crs(dtm_reprojected) ) # transformare dupa alt set de date
+
+ggplot() +
+  geom_stars(data =dtm_reprojected) +
+  geom_sf(data = plots_harv)
