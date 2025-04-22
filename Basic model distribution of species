@@ -1,0 +1,120 @@
+#### species distribution  modeling
+
+
+##gener
+library(raster)
+
+library(raster)
+library(dismo)
+library(dplyr)
+library(ggplot2)
+
+
+1. trebuie sa stium unde sunt speciile localizate si unde nu sunt
+#FAKE BACKGROUND
+2. Spacial data factori care influenteaza distributia speciilor
+#VARIABILE relevante in functie de specie
+3. Forecast  for predictor variables
+
+
+?dismo
+
+setwd("C:/Users/emyst/Downloads/New folder (2)") #schimbare director
+
+
+hooded <-read.csv("C:/Users/emyst/Downloads/New folder (2)/hooded_warb_locations.csv")
+
+colnames(hooded)
+
+env_data_current = stack("env_current.grd")   # combinare 2 fisiere raster
+env_data_forecast = stack ("env_forecast.grd")   # combinare 2 fisiere raster
+plot(env_data_current$precip)
+
+colnames(env_data_current
+### CROP HARTA dupa date
+
+hooded_warb_loc = select(hooded, lon, lat) # alege chenar din datele speciilor / locatie
+hooded_warb_env = extract(env_data_current, hooded_warb_loc) # extragere chenar din data curent cu hooded
+
+
+
+hooded_data = cbind(hooded,hooded_warb_env ) #combinare ambele variabile
+
+head(hooded_data)
+
+ggplot(hooded_data,
+       aes(tmin, precip, color = present)) +
+  geom_point()
+
+
+
+#creare model de species distribution
+
+generelaized model aproach  multivariate logistic regression
+
+
+logistic_regr_model = glm(present~ tmin + precip, # 1.  Modelul folosit
+                          family = binomial(link = "logit"),# 2. Link fucntion/ family of model / logistic regression
+                          
+                          data= hooded_data)
+
+#present = variabila dependenta ~ variabilele independente
+#binominal= variabila present este 0 si 1/ da si nu
+#logit= transforma probabilitatea intr o scara logaritmica
+
+summary(logistic_regr_model)
+
+
+
+
+#evaluare model - ROC curves Receiver Operating Characteristic
+ 
+-alegerea thresholdului , pragului de probabilitate din care specia este prezenta
+- linia trebuie sa fie curba pentru un model bun
+
+presence_data = filter(hooded_data , present== 1)
+absence_data = filter(hooded_data , present== 0)
+
+
+evaluation = evaluate(presence_data, absence_data, logistic_regr_model)
+plot(evaluation, "ROC") # IMI PLOTEAZA O CURBA ROC
+
+
+# predictii spatiale
+
+predictions = predict(env_data_current,
+                      logistic_regr_model,
+                      type= "response")          #1. Raster ' 2. Modelul  3. Va arata probabilitatea
+plot(predictions, ext =extent(-140, -50, 25, 60)) # da crop dupa un range de long si lat
+
+
+points(presence_data[c("lon", "lat")], pch= "+", cex = 0.5)
+# adaugare puncte la un plot deja existent
+#cex = marimea
+#pch = forma punctului
+
+
+
+# trebuie defenim doar unde credem ca exista specia
+# punem un treshold
+plot(predictions > 0.5, ext = extent(-140, -50, 25, 60))
+
+
+#alegere treshhold
+
+tr = threshold(evaluation, stat ="prevalence" ) # stat , alegere treshold dupa necestitate / prevalance arata aproximativ numarul potrivit
+
+plot(predictions > tr, ext = extent(-140, -50, 25, 60))
+points(presence_data[c("lon", "lat")], pch= "+", cex = 0.5)
+
+
+## Forecast dupa varibilele de mediu
+
+forecasts = predict(env_data_forecast,
+                    logistic_regr_model,
+                    type = "response")
+
+plot(forecasts, ext = extend(-140, -50, 25, 60))
+plot(forecasts > tr, ext = extend(-140, -50, 25, 60)) # dupa tresh hold
+
+plot(forecasts - predictions,ext = extend(-140, -50, 25, 60)) #cum se schimba probabilitatea spatial
